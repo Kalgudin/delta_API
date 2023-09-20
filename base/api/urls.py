@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from api.views import main
+from api.views import main, update_cats, update_prod
 
 urlpatterns = [
     path('', main, name='API'),
     path('v1/delta', main, name='API'),
+    path('v1/delta/update_cats', update_cats, name='update_cats'),
+    path('v1/delta/update_prod', update_prod, name='update_prod'),
 ]
