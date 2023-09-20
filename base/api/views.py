@@ -1,3 +1,8 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def main(request):
+    context = {'title': 'API',
+               'description': 'API main page'}
+    return render(request, 'api/main_API.html', context)
+

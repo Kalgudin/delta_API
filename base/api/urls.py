@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from api.views import main
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('delta.urls'), name='delta'),
-    path('api/', include('api.urls'), name='API'),
+    path('', main, name='API'),
+    path('v1/delta', main, name='API'),
 ]

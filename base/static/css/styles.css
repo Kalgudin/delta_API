@@ -1,0 +1,120 @@
+html, body{
+	margin: 0;
+	padding: 0;
+}
+header{
+	background-color: rgba(39,47,51, 0.7);
+	transition: 1s;
+}
+body{
+     background: url('/static/wb.jpg') no-repeat center center fixed;
+     -webkit-background-size: cover;
+     -moz-background-size: cover;
+     -o-background-size: cover;
+     background-size: cover;
+     color: white;
+}
+footer{
+	background-color: rgba(39,7,51, 0.7);
+	min-height: 50px;
+}
+.footer{
+    margin: 0 auto;
+	text-align: center;
+}
+div {
+    background-color: rgb(241 118 222 / 26%);
+    margin: 10px;
+    padding: 10px;
+}
+
+a {
+    color: yellow;
+}
+
+.top_side{
+	background-color: rgba(164, 119, 157, 0.7));
+    margin-bottom: 5px;
+}
+    .top_side img{
+        height: 20px;
+        width: auto;
+    }
+.main{
+	background-color: rgba(39,7,51, 0.7);
+	padding: 5;
+}
+.nav{
+	background-color: rgba(39,7,51, 0.7);
+ 	display: block;
+}
+    .nav__button_collapse{
+ 	    display: none;
+ 	    background-color: #b226a4c9;
+ 	    padding: 1px;
+ 	    margin: 1px;
+    }
+
+.aside{
+	background-color: rgba(39,7,51, 0.7);
+}
+    .commercial{
+        width: 95%;
+        height: auto;
+      }
+      .commercial img{
+        margin-bottom: 10px;
+        width: 100%;
+        height: auto;
+      }
+
+.prod{
+	background-color: rgba(164, 119, 157, 0.7));
+	width: 90%;
+	border: 1px solid rgba(164, 119, 157, 0.7));
+	border-radius: 20px;
+}
+.sab_category{
+    background-color: rgba(200, 119, 157, 0.6));
+}
+.cat_button{
+    background-color: rgba(200, 119, 157, 0.9));
+    border: 1px single orange;
+    padding: 5px;
+	border-radius: 5px;
+    box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, .2);
+}
+    cat_button:hover{
+        box-shadow: 4px 4px 4x 4px rgba(0, 0, 0, .4);
+        background-color: rgba(180, 109, 147, 1));
+    }
+    .cat_button a{
+        color: yellow;
+    }
+.this{
+    padding_left: 30px;
+}
+
+/*смартфон*/
+@media (max-width: 770px){
+    .nav{
+ 	    display: none;
+    }
+        .nav__button_collapse{
+            display: block;
+            height: 40px;
+            width: 95%;
+            text-align: center;
+        }
+        .nav_menu:hover > .nav__button_collapse{
+            box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, .5);
+        }
+
+        .nav_menu:hover > .nav {
+            display: block;
+
+	    }
+
+}
+/*-----25/01/2023-----*/
+

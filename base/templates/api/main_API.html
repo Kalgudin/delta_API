@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block top %}
+
+    <h1>{{ description }}</h1>
+    <p><a href="/">Main</a></p>
+    <p><a href="/api">Api</a></p>
+
+{% endblock %}
+
+{% block right %}
+<div class="commercial">
+    <img src="/static/commercial/reklama1.jpg">
+    <img src="/static/commercial/reklama2.jpg">
+</div>
+
+{% endblock %}
