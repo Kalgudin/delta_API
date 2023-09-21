@@ -1,10 +1,33 @@
 from threading import Thread
 
 from django.shortcuts import render
+from rest_framework.viewsets import GenericViewSet
 
-from api.category_def import get_catalogs_wb_for_db
-from api.models import Category
-from api.proucts_def import get_product_for_db
+from .category_def import get_catalogs_wb_for_db
+from .proucts_def import get_product_for_db
+from rest_framework import generics, viewsets, mixins
+from .models import Category
+from .serializers import CategorySerializer, CategoryAllSerializer
+
+
+class CategoryViewSet(mixins.CreateModelMixin,   # Удаляем и добавляем миксины в зависимости от функционала
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class CategoryAPIView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class CategoryAPIUpdate(generics.UpdateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 def main(request):
