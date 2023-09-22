@@ -76,5 +76,3 @@ except Exception as ex:
     PAGINATE = 20
     CAT_PAGES = 4
     CACHE_TIME = 60
-
-

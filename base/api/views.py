@@ -6,16 +6,30 @@ from rest_framework.viewsets import GenericViewSet
 from .category_def import get_catalogs_wb_for_db
 from .proucts_def import get_product_for_db
 from rest_framework import generics, viewsets, mixins
-from .models import Category
-from .serializers import CategorySerializer, CategoryAllSerializer
+from .models import Category, Product
+from .serializers import CategorySerializer, CategoryAllSerializer, ProductSerializer
 
 
-class CategoryViewSet(mixins.CreateModelMixin,   # Удаляем и добавляем миксины в зависимости от функционала
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   GenericViewSet):
+class CategoryViewSetPublic(mixins.RetrieveModelMixin,
+                            mixins.ListModelMixin,
+                            GenericViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class ProductViewSetPublic(mixins.RetrieveModelMixin,
+                           mixins.ListModelMixin,
+                           GenericViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+
+class CategoryViewSet(mixins.CreateModelMixin,  # Удаляем и добавляем миксины в зависимости от функционала
+                      mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
@@ -52,7 +66,7 @@ def update_prod(request):
     cat_list = []
     for n in range(10000):
         try:
-            cat_list.append(Category.objects.get(id=n+9000))
+            cat_list.append(Category.objects.get(id=n + 9000))
         except:
             pass
 
@@ -68,5 +82,3 @@ def update_prod(request):
     context = {'title': 'API',
                'description': 'Prods Updated'}
     return render(request, 'api/main_API.html', context)
-
-
