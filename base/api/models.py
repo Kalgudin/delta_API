@@ -35,6 +35,7 @@ class Product(models.Model):
     rating = models.IntegerField(verbose_name='рейтинг', default=0)
     url = models.CharField(max_length=300, verbose_name='url', blank=True)
     category = models.ManyToManyField(Category, verbose_name='список категорий', blank=True)  # олучилось дольше, чем со строкой
+    img = models.CharField(max_length=255, verbose_name='img', default='')
 
     def __str__(self):
         return self.name

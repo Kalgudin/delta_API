@@ -21,6 +21,30 @@ def time_track(func):
     return surrogate
 
 
+def _get_basket(vol):
+    if 0 <= vol <= 143: return '01'
+    elif 144 <= vol <= 287: return '02'
+    elif 288 <= vol <= 431: return '03'
+    elif 432 <= vol <= 719: return '04'
+    elif 720 <= vol <= 1007: return '05'
+    elif 1008 <= vol <= 1061: return '06'
+    elif 1062 <= vol <= 1115: return '07'
+    elif 1116 <= vol <= 1169: return '08'
+    elif 1170 <= vol <= 1313: return '09'
+    elif 1314 <= vol <= 1601: return '10'
+    elif 1602 <= vol <= 1655: return '11'
+    elif 1656 <= vol: return '12'
+    else: return '13'
+
+
+def get_image(prod_id):
+    vol = str(prod_id)[:-5]
+    part = str(prod_id)[:-3]
+    basket = _get_basket(vol)
+    link = f"https://basket-{basket}.wb.ru/vol{vol}/part{part}/{str(prod_id)}/images/c246x328/1.webp"
+    return link
+
+
 def get_average_price(id, price, all_prices):
     new_price = {"dt": int(datetime.now().timestamp()), "price": {"RUB": price}}
 
@@ -81,6 +105,7 @@ def _product_to_db(prod_db, prod_json, cat, priceU):
     prod_db.rating = int(prod_json['rating'])
     prod_db.url = f'https://www.wildberries.ru/catalog/{prod_json["id"]}/detail.aspx?targetUrl=BP'  # надо будет убрать
     prod_db.category.add(*_get_cat_list(cat_id=cat, cat_list=[]))
+    prod_db.img = get_image(prod_json['id'])
     # prod_db.save()
 
     return prod_db

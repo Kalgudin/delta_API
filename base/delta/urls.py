@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from delta.views import main
+from delta.views import main, get_img
 
 urlpatterns = [
     path('', main, name='main'),
+    path('get_img/', get_img, name='get_img'),
 ]

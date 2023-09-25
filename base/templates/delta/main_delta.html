@@ -7,8 +7,31 @@
 {% block top %}
 
     <h1>{{ description }}</h1>
+<p>-----------------------------------------------------------------</p>
     <p><a href="/">Main</a></p>
+    <p><a href="/admin">ADMIN</a></p>
     <p><a href="/api">Api</a></p>
+<p>-----------------------------------------------------------------</p>
+
+{% endblock %}
+
+
+
+{% block center %}
+
+{% for prod in prods %}
+    <div class="prods">
+        <div class="imgProds">
+            <img src="{{ prod.img }}">
+        </div>
+        <div class="descriptionProds">
+            <p>{{ prod.name }}</p>
+            <p>{{ prod.sale_price }}</p>
+        </div>
+        <p>-----------------------------------------------------------------</p>
+
+    </div>
+{% endfor %}
 
 {% endblock %}
 
