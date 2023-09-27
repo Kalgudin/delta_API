@@ -22,11 +22,14 @@
 {% for prod in prods %}
     <div class="prods">
         <div class="imgProds">
-            <img src="{{ prod.img }}">
+            <a href="{{ prod.url }}">
+                <img src="{{ prod.img }}">
+            </a>
         </div>
         <div class="descriptionProds">
-            <p>{{ prod.name }}</p>
-            <p>{{ prod.sale_price }}</p>
+            <p>Name: {{ prod.name }}</p>
+            <p>Price: {{ prod.sale_price }}</p>
+            <p>Sale - {{ prod.sale }} % </p>
         </div>
         <p>-----------------------------------------------------------------</p>
 

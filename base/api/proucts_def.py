@@ -18,43 +18,62 @@ def time_track(func):
         elapsed = round(ended_at - started_at, 4)
         print(f'Функция {func} работала {elapsed} секунд(ы)')
         return result
+
     return surrogate
 
 
-def _get_basket(vol):
-    if 0 <= vol <= 143: return '01'
-    elif 144 <= vol <= 287: return '02'
-    elif 288 <= vol <= 431: return '03'
-    elif 432 <= vol <= 719: return '04'
-    elif 720 <= vol <= 1007: return '05'
-    elif 1008 <= vol <= 1061: return '06'
-    elif 1062 <= vol <= 1115: return '07'
-    elif 1116 <= vol <= 1169: return '08'
-    elif 1170 <= vol <= 1313: return '09'
-    elif 1314 <= vol <= 1601: return '10'
-    elif 1602 <= vol <= 1655: return '11'
-    elif 1656 <= vol: return '12'
-    else: return '13'
+def _get_basket(prod_id):
+    vol = prod_id // 100000
+    part = prod_id // 1000
+    if 0 <= vol <= 143:
+        basket_code = '01'
+    elif 144 <= vol <= 287:
+        basket_code = '02'
+    elif 288 <= vol <= 431:
+        basket_code = '03'
+    elif 432 <= vol <= 719:
+        basket_code = '04'
+    elif 720 <= vol <= 1007:
+        basket_code = '05'
+    elif 1008 <= vol <= 1061:
+        basket_code = '06'
+    elif 1062 <= vol <= 1115:
+        basket_code = '07'
+    elif 1116 <= vol <= 1169:
+        basket_code = '08'
+    elif 1170 <= vol <= 1313:
+        basket_code = '09'
+    elif 1314 <= vol <= 1601:
+        basket_code = '10'
+    elif 1602 <= vol <= 1655:
+        basket_code = '11'
+    elif 1656 <= vol:
+        basket_code = '12'
+    else:
+        basket_code = '13'
+    return f"https://basket-{basket_code}.wb.ru/vol{vol}/part{part}/{str(prod_id)}"
 
 
 def get_image(prod_id):
-    vol = str(prod_id)[:-5]
-    part = str(prod_id)[:-3]
-    basket = _get_basket(vol)
-    link = f"https://basket-{basket}.wb.ru/vol{vol}/part{part}/{str(prod_id)}/images/c246x328/1.webp"
+    basket = _get_basket(prod_id)
+    link = f"{basket}/images/c246x328/1.webp"
     return link
 
 
 def get_average_price(id, price, all_prices):
     new_price = {"dt": int(datetime.now().timestamp()), "price": {"RUB": price}}
 
-    if not all_prices:  #  список пуст
-        url_history = f'https://wbx-content-v2.wbstatic.net/price-history/{id}.json'
+    if not all_prices:  # список пуст
+
+        #  https://basket-02.wb.ru/vol147/part14747/14747989/info/price-history.json
+        basket = _get_basket(int(id))
+        url_history = f'{basket}/info/price-history.json'
+        # print(url_history)
         try:
             all_prices = requests.get(url_history).json()
         except Exception as ex:
             print(f'Новый товар( {id} ), нет средней цены(ошибка - {ex})')
-            return price, 0, new_price  # возвращает среднюю цену, скидку в % и список всех цен.
+            return price, 0, new_price  # возвращает среднюю цену, скидку в % и список всех цен.  https://wbx-content-v2.wbstatic.net/price-history/114407749.json
 
     all_prices = all_prices[-3:] if len(all_prices) > 3 else all_prices  # Оставляем последние 4 цены
 
@@ -114,6 +133,7 @@ def _product_to_db(prod_db, prod_json, cat, priceU):
 def _get_product_from_json_for_db(data_js, cat):
     prod_list = []
     for product in data_js['data']['products']:
+        print(f'-------------------------PRODUCT - ------{product}--------------------------------------------')
         cond_1 = (int(product['rating']) >= 4)
         cond_2 = (int(product['feedbacks']) >= 100)
         if cond_1 and cond_2:
@@ -127,40 +147,43 @@ def _get_product_from_json_for_db(data_js, cat):
                     prod_list.append(_product_to_db(prod_db=pr, prod_json=product, cat=cat, priceU=priceU))
 
     Product.objects.bulk_update(prod_list, ['name', 'base_price', 'sale_price', 'average_price', 'sale', 'all_prices',
-                                            'feedbacks', 'rating', 'url', ])
-    # print(f'count prods = {len(prod_list)}')
+                                            'feedbacks', 'rating', 'url', 'img', ])
+    print(f'count prods = {len(prod_list)}-----------------------------')
 
 
 def _start_thread(shard, query, cat, start_page, end_page):
-    for page in range(start_page, end_page+1):
+    for page in range(start_page, end_page + 1):
         headers = {'Accept': "*/*"}
         # print(f'Сбор позиций со страницы {page} из {end_page}')
         url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub&dest=-1075831,-77677,-398551,12358499&locale=ru&page={page}&sort=popular&spp=0&{query}'
         # print(url)
-        r = requests.get(url, headers=headers)
-        try:
-            data_js = r.json()
-            _get_product_from_json_for_db(data_js=data_js, cat=cat)
-        except Exception as ex:
-            print(f'----Error----{ex}  / in _start_thread / -------requests --- {r}')
-            break
+        url2 = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&cat={cat}&curr=rub&dest=-1257786&page={page}&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33'
+        r = requests.get(url2, headers=headers)
+        # try:
+        data_js = r.json()
+        print("in start Threads URL2 --- ", data_js)
+        _get_product_from_json_for_db(data_js=data_js, cat=cat)
+        # except Exception as ex:
+        #     print(f'----Error----{ex}  / in _start_thread / -------requests --- {r}')
+        #     break
 
 
 # dramatiq.set_broker(RedisBroker())
 # @dramatiq.actor
 
 def get_product_for_db(shard, query, cat):
-    # print(CAT_PAGES)
+    CAT_PAGES = 2
+    print(CAT_PAGES)
     if CAT_PAGES >= 4:  # Запускаем в 4 потока(думаю, больше не стоит)
         n = round(CAT_PAGES / 4)
         tr1 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
-                                                              start_page=1, end_page=n))
+                                                                    start_page=1, end_page=n))
         tr2 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
-                                                              start_page=n+1, end_page=2*n))
+                                                                    start_page=n + 1, end_page=2 * n))
         tr3 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
-                                                              start_page=2*n+1, end_page=3*n))
+                                                                    start_page=2 * n + 1, end_page=3 * n))
         tr4 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
-                                                              start_page=3*n+1, end_page=CAT_PAGES))
+                                                                    start_page=3 * n + 1, end_page=CAT_PAGES))
         tr1.start()
         tr2.start()
         tr3.start()
@@ -171,10 +194,24 @@ def get_product_for_db(shard, query, cat):
         tr4.join()
     else:
         tr1 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
-                                                              start_page=1, end_page=CAT_PAGES))
+                                                                    start_page=1, end_page=CAT_PAGES))
         tr1.start()
         tr1.join()
 
+#  https://catalog.wb.ru/catalog/men_shoes/v4/filters?TestGroup=freq_02&TestID=286&appType=1&cat=8194&curr=rub&dest=-1257786&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&spp=33
+#  https://catalog.wb.ru/catalog/livingroom7/catalog?appType=1&cat=305&curr=rub&dest=-1257786&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33
+#  https://catalog.wb.ru/catalog/livingroom7/catalog?TestGroup=control&TestID=237&appType=1&cat=305&curr=rub&dest=-1257786&page=1&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33
+
+#  https://catalog.wb.ru/catalog/electronic14/catalog?appType=1&cat=59132&curr=rub&dest=-1257786&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33
 
 
-
+#  PRODUCT - ------
+#  {'__sort': 58143, 'ksort': 4531, 'time1': 4, 'time2': 29, 'dist': 67, 'id': 141502445, 'root': 46456805, 'kindId': 3, 'subjectId': 276, 'subjec
+# tParentId': 4607, 'name': 'Ползунки для малышей новорожденных', 'brand': 'Carrot', 'brandId': 32358, 'siteBrandId': 42358, 'supplierId': 26650, 'sale': 25, 'priceU': 180000, 'salePrice
+# U': 135000, 'logisticsCost': 0, 'saleConditions': 0, 'returnCost': 0, 'pics': 5, 'rating': 5, 'reviewRating': 4.9, 'feedbacks': 2172, 'volume': 19, 'colors': [{'name': 'белый', 'id': 1
+# 6777215}, {'name': 'коричневый', 'id': 10824234}], 'sizes': [{'name': '56-62', 'origName': '56-62', 'rank': 349783, 'optionId': 239658170, 'returnCost': 0, 'wh': 507, 'sign': 'pj/BO92U
+# JKI0q5hq+loIF32bevs=', 'payload': ''}, {'name': '62-68', 'origName': '62-68', 'rank': 375540, 'optionId': 239658171, 'returnCost': 0, 'wh': 120762, 'sign': 'log5g3xX4SiZRdqivkko6tM/UR8
+# =', 'payload': ''}, {'name': '68-74', 'origName': '68-74', 'rank': 391125, 'optionId': 239658172, 'returnCost': 0, 'wh': 507, 'sign': '7z5zEvHaa/cBf/J12FsBpUud/u0=', 'payload': ''}, {'
+# name': '74-80', 'origName': '74-80', 'rank': 402047, 'optionId': 239658173, 'returnCost': 0, 'wh': 120762, 'sign': 'mf4QUv/fmzRKHVEOCAwwcxpBnog=', 'payload': ''}, {'name': '80-86', 'or
+# igName': '80-86', 'rank': 412970, 'optionId': 239658174, 'returnCost': 0, 'wh': 507, 'sign': 'nItYNvASWAhmQOMEVhJ8QsA0InY=', 'payload': ''}, {'name': '86-92', 'origName': '86-92', 'ran
+# k': 422670, 'optionId': 239658175, 'returnCost': 0, 'wh': 120762, 'sign': 'QY1v6xrOBQopEGtE8bX+5Sj1qgg=', 'payload': ''}], 'diffPrice': False, 'log': {}}

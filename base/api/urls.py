@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from .views import main, CategoryViewSet, ProductViewSetPublic, CategoryViewSetPublic
+from .views import main, CategoryViewSet, ProductViewSetPublic, CategoryViewSetPublic, update_prod, update_pr
 
 router = routers.SimpleRouter()
 router.register(r'categories', CategoryViewSetPublic)
@@ -31,6 +31,6 @@ urlpatterns = [
     # path('v1/delta/WomenAPIView/<int:pk>', CategoryViewSet.as_view({'put': 'update', 'get': 'retrieve'}), name='CategoryGetUpdate'),
     # path('v1/delta/WomenAPIView', CategoryAPIView.as_view(), name='CategoryAPIView'),
     # path('v1/delta/WomenAPIView/<int:pk>', CategoryAPIUpdate.as_view(), name='CategoryAPIUpdate'),
-    # path('v1/delta/update_cats', update_cats, name='update_cats'),
-    # path('v1/delta/update_prod', update_prod, name='update_prod'),
+    path('v1/delta/update_pr', update_pr, name='update_pr'),
+    path('v1/delta/update_prod', update_prod, name='update_prod'),
 ]

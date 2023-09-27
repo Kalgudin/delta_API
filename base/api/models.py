@@ -42,7 +42,7 @@ class Product(models.Model):
 
     class Meta:
         verbose_name_plural = "Товары"
-
+        ordering = ['-sale']
 
 class Visitors(models.Model):
     ip = models.CharField(max_length=50)  #, verbose_name='IP посетителя', default='', db_index=True)
