@@ -1,6 +1,8 @@
 from threading import Thread
 
 from django.shortcuts import render
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from .category_def import get_catalogs_wb_for_db
@@ -10,18 +12,25 @@ from .models import Category, Product
 from .serializers import CategorySerializer, CategoryAllSerializer, ProductSerializer
 
 
-class CategoryViewSetPublic(mixins.RetrieveModelMixin,
-                            mixins.ListModelMixin,
-                            GenericViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class ProductsAPIPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
 
 class ProductViewSetPublic(mixins.RetrieveModelMixin,
                            mixins.ListModelMixin,
                            GenericViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(sale__gte=0)
     serializer_class = ProductSerializer
+    pagination_class = ProductsAPIPagination
+
+
+class CategoryViewSetPublic(mixins.RetrieveModelMixin,
+                            mixins.ListModelMixin,
+                            GenericViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 class CategoryViewSet(mixins.CreateModelMixin,  # Удаляем и добавляем миксины в зависимости от функционала
@@ -32,16 +41,19 @@ class CategoryViewSet(mixins.CreateModelMixin,  # Удаляем и добавл
                       GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated, )
 
 
 class CategoryAPIView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated, )
 
 
 class CategoryAPIUpdate(generics.UpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticated, )
 
 
 def main(request):

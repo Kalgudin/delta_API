@@ -19,6 +19,15 @@
 
 {% block center %}
 
+    <div class="paginator">
+        {% if previous_page %}
+            <a href="{{ previous_page }}" class="left"><---</a>
+        {% endif %}
+        {% if next_page %}
+            <a href="{{ next_page }}" class="right">---></a>
+        {% endif %}
+    </div>
+
 {% for prod in prods %}
     <div class="prods">
         <div class="imgProds">
@@ -35,7 +44,6 @@
 
     </div>
 {% endfor %}
-
 {% endblock %}
 
 {% block right %}

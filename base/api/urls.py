@@ -31,6 +31,6 @@ urlpatterns = [
     # path('v1/delta/WomenAPIView/<int:pk>', CategoryViewSet.as_view({'put': 'update', 'get': 'retrieve'}), name='CategoryGetUpdate'),
     # path('v1/delta/WomenAPIView', CategoryAPIView.as_view(), name='CategoryAPIView'),
     # path('v1/delta/WomenAPIView/<int:pk>', CategoryAPIUpdate.as_view(), name='CategoryAPIUpdate'),
-    path('v1/delta/update_pr', update_pr, name='update_pr'),
-    path('v1/delta/update_prod', update_prod, name='update_prod'),
+    # path('v1/delta/update_pr', update_pr, name='update_pr'),
+    # path('v1/delta/update_prod', update_prod, name='update_prod'),
 ]
