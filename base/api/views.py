@@ -3,13 +3,15 @@ from threading import Thread
 from django.shortcuts import render
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 
 from .category_def import get_catalogs_wb_for_db
 from .proucts_def import get_product_for_db, get_image, get_average_price
 from rest_framework import generics, viewsets, mixins
 from .models import Category, Product
-from .serializers import CategorySerializer, CategoryAllSerializer, ProductSerializer
+from .serializers import CategorySerializer, CategoryAllSerializer, ProductSerializer, CategoryParentSerializer
 
 
 class ProductsAPIPagination(PageNumberPagination):
@@ -18,19 +20,40 @@ class ProductsAPIPagination(PageNumberPagination):
     max_page_size = 1000
 
 
-class ProductViewSetPublic(mixins.RetrieveModelMixin,
-                           mixins.ListModelMixin,
-                           GenericViewSet):
+class ProductViewSetPublic(ReadOnlyModelViewSet):
     queryset = Product.objects.filter(sale__gte=0)
     serializer_class = ProductSerializer
     pagination_class = ProductsAPIPagination
 
 
-class CategoryViewSetPublic(mixins.RetrieveModelMixin,
-                            mixins.ListModelMixin,
-                            GenericViewSet):
-    queryset = Category.objects.all()
+class CategoryViewSetPublic(mixins.ListModelMixin, GenericViewSet):  # не используется
     serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        pk = self.kwargs.get("pk") if self.kwargs.get("pk") != 0 else None
+        cat_list = Category.objects.filter(parent_cat=pk)
+        print(cat_list)
+        return cat_list
+
+
+class CatForMenuViewSet(APIView):
+    def get(self, request, pk):
+        if not pk:
+            cat_list = Category.objects.filter(parent_cat=None)
+            parent = None
+            grand = None
+        else:
+            cat_list = Category.objects.filter(parent_cat=pk)
+            parent = Category.objects.get(pk=pk)
+            grand = {'name': parent.parent_cat.name, 'id': parent.parent_cat.id} if parent.parent_cat else None
+            parent = {'name': parent.name, 'id': parent.id} if parent else None
+
+        return Response({'posts': CategorySerializer(cat_list, many=True).data, 'parent': parent, 'grand': grand})
+
+
+class CategoryDetailPublic(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategoryParentSerializer
 
 
 class CategoryViewSet(mixins.CreateModelMixin,  # Удаляем и добавляем миксины в зависимости от функционала
@@ -41,22 +64,23 @@ class CategoryViewSet(mixins.CreateModelMixin,  # Удаляем и добавл
                       GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
 
 class CategoryAPIView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
 
 class CategoryAPIUpdate(generics.UpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
 
 def main(request):
+    print(encode())
     context = {'title': 'API',
                'description': 'API main page'}
     return render(request, 'api/main_API.html', context)
@@ -102,5 +126,3 @@ def update_pr(request):
         counter += 1
     print(f'{counter} - prods Updated')
     return render(request, 'api/main_API.html', context)
-
-

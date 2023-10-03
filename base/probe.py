@@ -1,3 +1,5 @@
+import re
+
 import requests
 
 from api.models import Product
@@ -51,6 +53,9 @@ def get_img_for_prods():
     return 'Images added :)'
 
 
+
+
+#################################
 
 
 

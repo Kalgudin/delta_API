@@ -17,16 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from .views import main, CategoryViewSet, ProductViewSetPublic, CategoryViewSetPublic, update_prod, update_pr
+from .views import main, CategoryViewSet, ProductViewSetPublic, CategoryViewSetPublic, update_prod, update_pr, \
+    CatForMenuViewSet
 
 router = routers.SimpleRouter()
-router.register(r'categories', CategoryViewSetPublic)
-router.register(r'products', ProductViewSetPublic)
+# router.register(r'categories', CategoryViewSetPublic, basename='categories')
+router.register(r'products', ProductViewSetPublic, basename='products')
 
 urlpatterns = [
     path('', main, name='API'),
-    path('v1/delta', main, name='API'),
-    path('v1/delta/', include(router.urls)),  # http://127.0.0.1:8000/api/v1/delta/categories/ -list # /12324 -element
+    path('v1/delta/', main, name='API'),
+    path('v1/delta/', include(router.urls)),  # http://127.0.0.1:8000/api/v1/delta/products/ -list # /6994 -element
+    path('v1/delta/childs/<int:pk>/', CatForMenuViewSet.as_view()),  # http://127.0.0.1:8000/api/v1/delta/categories/0 -list
+
+    path('v1/delta/childs_categories/<int:pk>/', CategoryViewSetPublic.as_view({'get': 'list'})),  # НЕ ИСПОЛЬЗУЕТСЯ
+
+
     # path('v1/delta/WomenAPIView', CategoryViewSet.as_view({'get': 'list'}), name='CategoryList'),
     # path('v1/delta/WomenAPIView/<int:pk>', CategoryViewSet.as_view({'put': 'update', 'get': 'retrieve'}), name='CategoryGetUpdate'),
     # path('v1/delta/WomenAPIView', CategoryAPIView.as_view(), name='CategoryAPIView'),

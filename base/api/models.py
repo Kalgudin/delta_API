@@ -12,6 +12,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = "Категории"
+        ordering = ['-total_views']
 
     def counter(self):
         self.total_views += 1

@@ -22,5 +22,6 @@ from delta.views import main
 urlpatterns = [
     path('', main, name='main'),
     path('page/<str:page>', main, name='main_page'),
+    path('category/<int:pk>/', main, name='main_page_cat'),
     # path('get_img/', get_img, name='get_img'),
 ]
