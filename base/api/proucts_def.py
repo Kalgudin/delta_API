@@ -5,7 +5,7 @@ from threading import Thread
 import requests
 from .models import *
 
-CAT_PAGES = 2
+CAT_PAGES = 8
 
 
 def time_track(func):
@@ -62,21 +62,17 @@ def get_image(prod_id):
 
 def get_average_price(id, price, all_prices):
     new_price = {"dt": int(datetime.now().timestamp()), "price": {"RUB": price}}
-
     if not all_prices:  # список пуст
-
         #  https://basket-02.wb.ru/vol147/part14747/14747989/info/price-history.json
+        # print(url_history)
         basket = _get_basket(int(id))
         url_history = f'{basket}/info/price-history.json'
-        # print(url_history)
-        try:
-            all_prices = requests.get(url_history).json()
-        except Exception as ex:
-            print(f'Новый товар( {id} ), нет средней цены(ошибка - {ex})')
+        all_prices = requests.get(url_history).json()
+        if not all_prices:
+            print(f'Новый товар( {id} ), нет средней цены(ошибка)')
             return price, 0, new_price  # возвращает среднюю цену, скидку в % и список всех цен.  https://wbx-content-v2.wbstatic.net/price-history/114407749.json
 
     all_prices = all_prices[-3:] if len(all_prices) > 3 else all_prices  # Оставляем последние 4 цены
-
     summa = 0
     for element in all_prices:
         summa += element['price']['RUB']
@@ -122,9 +118,11 @@ def _product_to_db(prod_db, prod_json, cat, priceU):
     prod_db.all_prices = all_prices
     prod_db.feedbacks = int(prod_json['feedbacks'])
     prod_db.rating = int(prod_json['rating'])
-    prod_db.url = f'https://www.wildberries.ru/catalog/{prod_json["id"]}/detail.aspx?targetUrl=BP'  # надо будет убрать
+    prod_db.url = f'https://www.wildberries.ru/catalog/{prod_json["id"]}/detail.aspx'  # надо будет убрать
     prod_db.category.add(*_get_cat_list(cat_id=cat, cat_list=[]))
-    prod_db.img = get_image(prod_json['id'])
+    _basket = _get_basket(prod_json['id'])
+    prod_db.basket = _basket
+    prod_db.img = f"{_basket}/images/c246x328/1.webp"
     # prod_db.save()
 
     return prod_db
@@ -133,7 +131,7 @@ def _product_to_db(prod_db, prod_json, cat, priceU):
 def _get_product_from_json_for_db(data_js, cat):
     prod_list = []
     for product in data_js['data']['products']:
-        print(f'-------------------------PRODUCT - ------{product}--------------------------------------------')
+        # print(f'-------------------------PRODUCT - ------{product}--------------------------------------------')
         cond_1 = (int(product['rating']) >= 4)
         cond_2 = (int(product['feedbacks']) >= 100)
         if cond_1 and cond_2:
@@ -147,33 +145,32 @@ def _get_product_from_json_for_db(data_js, cat):
                     prod_list.append(_product_to_db(prod_db=pr, prod_json=product, cat=cat, priceU=priceU))
 
     Product.objects.bulk_update(prod_list, ['name', 'base_price', 'sale_price', 'average_price', 'sale', 'all_prices',
-                                            'feedbacks', 'rating', 'url', 'img', ])
-    print(f'count prods = {len(prod_list)}-----------------------------')
+                                            'feedbacks', 'rating', 'url', 'img', 'basket'])
+    # print(f'IN _get_product_from_json_for_db == prod_list = > {prod_list}-----------------------------')
 
 
 def _start_thread(shard, query, cat, start_page, end_page):
     for page in range(start_page, end_page + 1):
         headers = {'Accept': "*/*"}
-        # print(f'Сбор позиций со страницы {page} из {end_page}')
-        url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&curr=rub&dest=-1075831,-77677,-398551,12358499&locale=ru&page={page}&sort=popular&spp=0&{query}'
-        # print(url)
-        url2 = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&cat={cat}&curr=rub&dest=-1257786&page={page}&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33'
-        r = requests.get(url2, headers=headers)
-        # try:
-        data_js = r.json()
-        print("in start Threads URL2 --- ", data_js)
-        _get_product_from_json_for_db(data_js=data_js, cat=cat)
-        # except Exception as ex:
-        #     print(f'----Error----{ex}  / in _start_thread / -------requests --- {r}')
-        #     break
+        print(f'Сбор позиций со страницы {page} из {end_page}')
+
+        url = f'https://catalog.wb.ru/catalog/{shard}/catalog?appType=1&cat={cat}&curr=rub&dest=-1257786&page={page}&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33'
+
+        r = requests.get(url, headers=headers)
+        # print('======= _start_thread === request ---   ', r)
+        try:
+            data_js = r.json()
+            # print('======= IN _start_thread === data_js ---   > ')
+            _get_product_from_json_for_db(data_js=data_js, cat=cat)
+        except Exception as ex:
+            print(f'----Error----{ex}  / in _start_thread / -------requests --- {r}')
+            break
 
 
 # dramatiq.set_broker(RedisBroker())
 # @dramatiq.actor
 
 def get_product_for_db(shard, query, cat):
-    CAT_PAGES = 2
-    print(CAT_PAGES)
     if CAT_PAGES >= 4:  # Запускаем в 4 потока(думаю, больше не стоит)
         n = round(CAT_PAGES / 4)
         tr1 = Thread(target=_start_thread, daemon=True, kwargs=dict(shard=shard, query=query, cat=cat,
@@ -197,6 +194,7 @@ def get_product_for_db(shard, query, cat):
                                                                     start_page=1, end_page=CAT_PAGES))
         tr1.start()
         tr1.join()
+        # _start_thread(shard=shard, query=query, cat=cat, start_page=1, end_page=CAT_PAGES)
 
 #  https://catalog.wb.ru/catalog/men_shoes/v4/filters?TestGroup=freq_02&TestID=286&appType=1&cat=8194&curr=rub&dest=-1257786&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&spp=33
 #  https://catalog.wb.ru/catalog/livingroom7/catalog?appType=1&cat=305&curr=rub&dest=-1257786&regions=80,38,83,4,64,33,68,70,30,40,86,75,69,1,31,66,110,48,22,71,114&sort=popular&spp=33

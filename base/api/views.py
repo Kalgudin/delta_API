@@ -99,20 +99,19 @@ def update_cats(request):
 
 
 def update_prod(request):
-    cat_list = Category.objects.all()[:10]
-
-    for cat in cat_list:
-        # print(cat)
-        # get_product_for_db(shard=cat.shard, query=cat.query, cat=cat.id)
-        t1 = Thread(target=get_product_for_db, daemon=True,
-                    kwargs=dict(shard=cat.shard, query=cat.query, cat=cat.id))
-        t1.start()  # Вроде работает
-        # t1.join()
-        print(f'{cat} - STOPPED----------')
-
+    t1 = Thread(target=_cat_update_in_threads, daemon=True)
+    t1.start()
     context = {'title': 'API',
                'description': 'Prods Updated'}
     return render(request, 'api/main_API.html', context)
+
+
+def _cat_update_in_threads():
+    cat_list = Category.objects.all()[71:80]
+    # print(f'IN _cat_update_in_threads == catList - >  {cat_list}')
+    for cat in cat_list:
+        get_product_for_db(shard=cat.shard, query=cat.query, cat=cat.id)
+        print(f'{cat} / {cat.name} - STOPPED----------')
 
 
 def update_pr(request):

@@ -36,6 +36,7 @@ class Product(models.Model):
     rating = models.IntegerField(verbose_name='рейтинг', default=0)
     url = models.CharField(max_length=300, verbose_name='url', blank=True)
     category = models.ManyToManyField(Category, verbose_name='список категорий', blank=True)  # олучилось дольше, чем со строкой
+    basket = models.CharField(max_length=255, verbose_name='basket', default='')
     img = models.CharField(max_length=255, verbose_name='img', default='')
 
     def __str__(self):
@@ -44,6 +45,7 @@ class Product(models.Model):
     class Meta:
         verbose_name_plural = "Товары"
         ordering = ['-sale']
+
 
 class Visitors(models.Model):
     ip = models.CharField(max_length=50)  #, verbose_name='IP посетителя', default='', db_index=True)

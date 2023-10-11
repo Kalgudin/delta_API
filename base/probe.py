@@ -65,8 +65,6 @@ def get_img_for_prods():
 
 
 
-
-
 # # https://catalog.wb.ru/catalog/school2/catalog?appType=1&curr=rub&dest=-1075831,-77677,-398551,12358499&locale=ru&page=1&sort=popular&spp=0&cat=130014'
 # #
 #
